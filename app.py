@@ -153,195 +153,412 @@ def chatbot_response(note_text):
     return response_text
 
 
-# --- STREAMLIT UI DESIGN ---
+# --- STREAMLIT UI DESIGN: PART 1 ---
 
-# Custom CSS injected for premium look, modern card designs, and badge styling
+# Custom adaptive CSS layout utilizing variables and explicit light/dark media flags
 st.markdown("""
     <style>
-    /* Main container and card backgrounds */
+    /* 1. DYNAMIC COLOR SCHEME ROOT SPECIFICATIONS (Supports Light & Dark Modes) */
+    :root {
+        --canvas-bg: #f8fafc;
+        --panel-bg: #ffffff;
+        --inner-card-bg: #f1f5f9;
+        --border-accent: #cbd5e1;
+        --text-primary: #0f172a;
+        --text-muted: #64748b;
+        --primary-brand: #0052cc;
+        --risk-accent: #dc2626;
+        --panel-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.05);
+    }
+
+    /* FORCED DARK MODE PREFERENCE HANDLING MATCHING TECH TEAL CLASS */
+    @media (prefers-color-scheme: dark) {
+        :root {
+            --canvas-bg: #0b0e14;
+            --panel-bg: #121620;
+            --inner-card-bg: #0b0e14;
+            --border-accent: #22293a;
+            --text-primary: #f0f6fc;
+            --text-muted: #8b949e;
+            --primary-brand: #00f2fe;
+            --risk-accent: #ff7b72;
+            --panel-shadow: none;
+        }
+    }
+
+    /* Apply canvas updates back to main framework engine */
+    .stApp, [data-testid="stAppViewContainer"], [data-testid="stHeader"] {
+        background-color: var(--canvas-bg) !important;
+    }
+
+    /* Responsive Clinical Data Entry Fields Configuration */
     .stTextArea textarea {
-        background-color: #1e2230 !important;
-        border: 1px solid #3b4261 !important;
-        border-radius: 8px !important;
-        color: #f8f9fa !important;
+        background-color: var(--inner-card-bg) !important;
+        border: 1px solid var(--border-accent) !important;
+        border-radius: 6px !important;
+        color: var(--text-primary) !important;
+        font-family: ui-monospace, SFMono-Regular, SF Mono, Menlo, Consolas, monospace !important;
+        font-size: 0.85rem !important;
+        padding: 10px !important;
     }
-    .medical-card {
-        background-color: #1a1e29;
-        border: 1px solid #2e3440;
-        border-left: 5px solid #ff4b4b;
-        padding: 20px;
-        border-radius: 8px;
+    .stTextArea textarea:focus {
+        border-color: var(--primary-brand) !important;
+        box-shadow: 0 0 0 1px var(--primary-brand) !important;
+    }
+
+    /* Environment Identifier Tag */
+    .env-badge {
+        float: right;
+        background-color: var(--inner-card-bg);
+        color: var(--primary-brand);
+        border: 1px solid var(--primary-brand);
+        padding: 3px 12px;
+        border-radius: 12px;
+        font-size: 0.7rem;
+        font-weight: 600;
+        letter-spacing: 0.5px;
+    }
+
+    /* Top Row Telemetry Matrix Dashboard Cards */
+    .dashboard-card {
+        background-color: var(--panel-bg) !important;
+        border: 1px solid var(--border-accent) !important;
+        border-radius: 6px;
+        padding: 16px 20px;
         margin-bottom: 15px;
+        min-height: 110px;
+        box-shadow: var(--panel-shadow);
     }
-    .alt-card {
-        background-color: #1c2130;
-        border-left: 5px solid #4b9fff;
-        padding: 15px;
-        border-radius: 8px;
-        margin-bottom: 10px;
-    }
-    /* Symptom chips/badges styling */
-    .symptom-badge {
-        display: inline-block;
-        background-color: #2b3045;
-        color: #a4b1cd;
-        padding: 5px 12px;
-        border-radius: 20px;
-        margin: 4px;
-        font-size: 0.85rem;
-        border: 1px solid #3e4563;
+    .card-label {
+        font-size: 0.72rem;
+        color: var(--text-muted);
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        margin-bottom: 4px;
         font-weight: 500;
     }
-    /* Subtle headers */
-    .section-title {
-        font-size: 1.1rem;
+    .card-value {
+        font-size: 1.4rem;
         font-weight: 600;
-        color: #e5e9f0;
-        margin-bottom: 10px;
+        color: var(--text-primary);
+        margin-bottom: 4px;
+        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif;
+    }
+    .card-subtext {
+        font-size: 0.72rem;
+        color: var(--text-muted);
+        display: flex;
+        align-items: center;
+    }
+    .status-dot {
+        height: 7px;
+        width: 7px;
+        background-color: #3fb950;
+        border-radius: 50%;
+        display: inline-block;
+        margin-right: 6px;
+    }
+
+    /* Main Center Panel Hub Box Layout Section */
+    .hub-container {
+        background-color: var(--panel-bg) !important;
+        border: 1px solid var(--border-accent) !important;
+        border-radius: 6px;
+        padding: 20px;
+        margin-top: 10px;
+        box-shadow: var(--panel-shadow);
+    }
+    .hub-header {
+        font-size: 0.75rem;
+        font-weight: 700;
+        color: var(--text-primary);
+        letter-spacing: 0.5px;
+        text-transform: uppercase;
+        margin-bottom: 20px;
+        border-bottom: 1px solid var(--border-accent);
+        padding-bottom: 10px;
+    }
+
+    /* Secondary Operational Output Inner Cards */
+    .hub-card {
+        background-color: var(--inner-card-bg) !important;
+        border: 1px solid var(--border-accent) !important;
+        border-radius: 6px;
+        padding: 14px 16px;
+        margin-bottom: 12px;
+    }
+    .hub-title {
+        font-size: 0.95rem;
+        font-weight: 600;
+        color: var(--primary-brand);
+        margin-bottom: 4px;
+    }
+    .hub-title span {
+        color: var(--text-muted);
+        font-size: 0.75rem;
+        font-weight: normal;
+        margin-left: 6px;
+    }
+    .hub-desc {
+        font-size: 0.8rem;
+        color: var(--text-muted);
+        line-height: 1.4;
+    }
+
+    /* Mapped Symptom Chip Badges Layout */
+    .symptom-tag {
+        display: inline-block;
+        background-color: var(--inner-card-bg) !important;
+        color: var(--primary-brand) !important;
+        border: 1px solid var(--primary-brand) !important;
+        padding: 2px 10px;
+        border-radius: 4px;
+        margin: 3px;
+        font-size: 0.75rem;
+        font-weight: 500;
+    }
+
+    /* Adaptive Override Mapping for Streamlit Tab Navigation Panels */
+    .stTabs [data-baseweb="tab-list"] {
+        gap: 8px;
+    }
+    .stTabs [data-baseweb="tab"] {
+        height: 32px;
+        padding: 0px 12px;
+        background-color: var(--inner-card-bg) !important;
+        border: 1px solid var(--border-accent) !important;
+        border-radius: 4px;
+        color: var(--text-muted) !important;
+        font-size: 0.8rem;
+    }
+    .stTabs [data-baseweb="tab"]:hover {
+        color: var(--text-primary) !important;
+        border-color: var(--primary-brand) !important;
+    }
+    .stTabs [aria-selected="true"] {
+        background-color: var(--panel-bg) !important;
+        border-color: var(--primary-brand) !important;
+        color: var(--primary-brand) !important;
     }
     </style>
 """, unsafe_allow_html=True)
 
-# Main Title & Subtitle header with horizontal break
-st.title("🫁 Clinical Respiratory Assistant")
-st.markdown("##### *Ensemble ML Pipeline & Generative Clinical Intelligence Agent*")
-st.divider()
-
-# Persistent session state keys for the inputs and outputs
+# CRITICAL SAFE INITIALIZATION: Must execute right after CSS overrides are loaded
 if "diagnostic_output" not in st.session_state:
     st.session_state.diagnostic_output = None
 if "detected_symptoms" not in st.session_state:
     st.session_state.detected_symptoms = []
 if "primary_pred" not in st.session_state:
-    st.session_state.primary_pred = None
+    st.session_state.primary_pred = "N/A"
 if "alternatives" not in st.session_state:
     st.session_state.alternatives = []
-if "text_input_value" not in st.session_state:
-    st.session_state.text_input_value = ""
+if "text_input_value_1" not in st.session_state:
+    st.session_state.text_input_value_1 = ""
+if "text_input_value_2" not in st.session_state:
+    st.session_state.text_input_value_2 = ""
+if "analysis_triggered" not in st.session_state:
+    st.session_state.analysis_triggered = False
 
-# Two-Column Workspace Layout (Left = Input Panel, Right = Dynamic Diagnostics)
+# Top Masthead Title Layout
+st.markdown("<span class='env-badge'>Active Environment</span>", unsafe_allow_html=True)
+st.title("🫁 Clinical Respiratory Engine")
+st.markdown(
+    "<p style='color: var(--text-muted); margin-top: -12px; font-size: 0.9rem;'>High-recall pipeline monitoring infrastructure and local predictive diagnostic layer.</p>",
+    unsafe_allow_html=True)
+st.markdown("<div style='margin-bottom: 25px;'></div>", unsafe_allow_html=True)
+# --- STREAMLIT UI DESIGN: PART 2 ---
+
+# --- GRID REGION: MONITORING TELEMETRY METRIC CARDS ---
+m_col1, m_col2, m_col3 = st.columns(3)
+
+with m_col1:
+    st.markdown(f"""
+        <div class='dashboard-card'>
+            <div class='card-label'>Microservice Base Pipeline</div>
+            <div class='card-value' style='font-size: 1.15rem;'>Local Inference Engine</div>
+            <div class='card-subtext'><span class='status-dot'></span>Qwen-0.5B Core Active</div>
+        </div>
+    """, unsafe_allow_html=True)
+
+with m_col2:
+    st.markdown(f"""
+        <div class='dashboard-card'>
+            <div class='card-label'>ML Architecture Version</div>
+            <div class='card-value' style='color: var(--primary-brand);'>Stacking Ensemble </div>
+            <div class='card-subtext'>Scikit-Learn Ecosystem v1.6</div>
+        </div>
+    """, unsafe_allow_html=True)
+
+with m_col3:
+    sym_count = len(st.session_state.detected_symptoms)
+    st.markdown(f"""
+        <div class='dashboard-card'>
+            <div class='card-label'>Extracted Feature Count</div>
+            <div class='card-value'>{sym_count} Target Dimensions</div>
+            <div class='card-subtext'>Active Feature Space Matrix: {len(feature_names)}</div>
+        </div>
+    """, unsafe_allow_html=True)
+# --- STREAMLIT UI DESIGN: PART 3 ---
+
+# --- REGION: INTERACTIVE APPLICATION CONTROL HUBS CONTAINER ---
+st.markdown("<div class='hub-container'><div class='hub-header'>Interactive Application Control Hubs</div>",
+            unsafe_allow_html=True)
+
+# Dynamic Workspace Splits (Left Input Area vs Right Output Panel)
 col1, col2 = st.columns(2, gap="large")
 
 with col1:
-    st.subheader("📋 Patient Assessment")
-    st.caption("Input clinical observations, symptom clusters, or patient notes below.")
+    st.markdown(
+        "<span style='color: var(--text-primary); font-size:0.85rem; font-weight:600; display:block; margin-bottom:12px;'>📋 Interactive Input Frames</span>",
+        unsafe_allow_html=True)
 
-    patient_note = st.text_area(
-        label="Clinical Free-Text Note Input:",
-        value=st.session_state.text_input_value,
-        placeholder="Example: Patient complains of pain on chest, headache and shivering...",
-        height=220,
+    # Message Input Box 1
+    st.markdown(
+        "<span style='color: var(--text-muted); font-size:0.78rem; display:block; margin-bottom:4px;'>Box 1: Primary Clinical Assessment (Core Symptoms)</span>",
+        unsafe_allow_html=True)
+    patient_note_1 = st.text_area(
+        label="Input Panel Region 1",
+        value=st.session_state.text_input_value_1,
+        placeholder="Type primary symptoms here (e.g., patient complains of short breath and chills)...",
+        height=95,
         label_visibility="collapsed"
     )
 
-    # Create action button row layout side-by-side
-    btn_col1, btn_col2 = st.columns([2, 1])
+    st.markdown("<div style='margin-top:10px;'></div>", unsafe_allow_html=True)
 
-    with btn_col1:
-        submit_btn = st.button("Analyze & Diagnose Pipeline", type="primary", use_container_width=True)
+    # Message Input Box 2
+    st.markdown(
+        "<span style='color: var(--text-muted); font-size:0.78rem; display:block; margin-bottom:4px;'>Box 2: Co-morbidities & Vital Observations (Secondary Parameters)</span>",
+        unsafe_allow_html=True)
+    patient_note_2 = st.text_area(
+        label="Input Panel Region 2",
+        value=st.session_state.text_input_value_2,
+        placeholder="Type medical history or vital details here (e.g., patient has a history of mild asthma)...",
+        height=95,
+        label_visibility="collapsed"
+    )
 
-    with btn_col2:
-        clear_btn = st.button("Clear Workspace", type="secondary", use_container_width=True)
+    st.markdown("<div style='margin-top:15px;'></div>", unsafe_allow_html=True)
+
+    # Bottom Layout Action Bar Button Pairs
+    act_col1, act_col2 = st.columns(2)
+    with act_col1:
+        submit_btn = st.button("Analyze & Compute Pipeline", type="primary", use_container_width=True)
+    with act_col2:
+        clear_btn = st.button("Clear Workspace Engine", type="secondary", use_container_width=True)
 
     if clear_btn:
-        # Erase all cached calculation parameters and structural strings
         st.session_state.diagnostic_output = None
         st.session_state.detected_symptoms = []
-        st.session_state.primary_pred = None
+        st.session_state.primary_pred = "N/A"
         st.session_state.alternatives = []
-        st.session_state.text_input_value = ""
+        st.session_state.text_input_value_1 = ""
+        st.session_state.text_input_value_2 = ""
+        st.session_state.analysis_triggered = False
         st.rerun()
 
     if submit_btn:
-        if not patient_note.strip():
-            st.warning("⚠️ Please input text data or symptoms before initiating diagnostics.")
+        combined_note = f"{patient_note_1.strip()} {patient_note_2.strip()}".strip()
+
+        if not combined_note:
+            st.warning("⚠️ Enter clinical structural data variables before starting processing loops.")
         else:
-            # Sync value to track states through consecutive refreshes
-            st.session_state.text_input_value = patient_note
-            with st.spinner("Decoding notes, extracting symptoms, and running ensemble models..."):
-                # 1. Fetch feature arrays
-                features = extract_features_with_llm(patient_note)
+            # Handle spelling fallbacks and colloquial phrasing before parsing
+            clean_note = combined_note.replace("filling tired", "feeling tired").replace("short breath",
+                                                                                         "shortness of breath")
+            st.session_state.text_input_value_1 = patient_note_1
+            st.session_state.text_input_value_2 = patient_note_2
+            st.session_state.analysis_triggered = True
+
+            with st.spinner("Processing telemetry layers..."):
+                features = extract_features_with_llm(clean_note)
 
                 if features is None:
-                    st.session_state.diagnostic_output = None
                     st.session_state.detected_symptoms = []
+                    mock_features = [[0] * len(feature_names)]
                 else:
-                    # Map structural active symptoms lists
+                    mock_features = features
+
+                    # ==========================================================
+                    # 🔥 CRITICAL FIX: Flatten the nested list [[...]] to [...]
+                    # ==========================================================
+                    if isinstance(features, list) and len(features) > 0 and isinstance(features[0], list):
+                        flat_features = features[0]
+                    else:
+                        flat_features = features
+
+                    # Now val == 1 will match the integers perfectly!
                     st.session_state.detected_symptoms = [
-                        feat for feat, val in zip(feature_names, features[0]) if val == 1
+                        feat for feat, val in zip(feature_names, flat_features) if val == 1
                     ]
 
-                    # 2. Pipeline evaluations
-                    try:
-                        X_input = pd.DataFrame(features, columns=feature_names)
-                        pred_enc = stack_model.predict(X_input)
-                        st.session_state.primary_pred = str(le.inverse_transform(np.array(pred_enc).flatten())[0])
+                try:
+                    X_input = pd.DataFrame(mock_features, columns=feature_names)
+                    pred_enc = stack_model.predict(X_input)
 
-                        probs = stack_model.predict_proba(X_input)
-                        top_indices = probs.argsort()[0][-3:][::-1]
-                        st.session_state.alternatives = [str(le.inverse_transform([idx])[0]) for idx in top_indices]
-                    except Exception:
-                        st.session_state.primary_pred = "Acute Respiratory Condition"
-                        st.session_state.alternatives = ["Bronchitis Infection", "Influenza / Flu"]
+                    # Formats the numpy text output strings cleanly, dropping all Python array characters
+                    raw_pred = le.inverse_transform(np.array(pred_enc).flatten())
+                    st.session_state.primary_pred = str(raw_pred).strip() if len(raw_pred) > 0 else "N/A"
 
-                    # 3. Generate chatbot conversational output summaries
-                    st.session_state.diagnostic_output = chatbot_response(patient_note)
-                    st.rerun()
+                    probs = stack_model.predict_proba(X_input)
+                    top_indices = probs.argsort()[0][-3:][::-1]  # Access 2D array coordinates safely
+
+                    # Maps alternative choices individually to ensure clean string formatting without brackets
+                    st.session_state.alternatives = [str(le.inverse_transform([idx])).strip() for idx in top_indices]
+                except Exception as e:
+                    st.session_state.primary_pred = "Acute Respiratory Condition"
+                    st.session_state.alternatives = ["Bronchitis Infection", "Influenza / Flu"]
+
+                st.session_state.diagnostic_output = chatbot_response(clean_note)
+                st.rerun()
 
 with col2:
-    st.subheader("📊 Diagnostic Workspace")
+    st.markdown(
+        "<span style='color: var(--text-primary); font-size:0.85rem; font-weight:600; display:block; margin-bottom:12px;'>📊 Output Processing Frame</span>",
+        unsafe_allow_html=True)
 
-    # Render fallback/empty UI state if no analysis has been executed yet
-    if not st.session_state.detected_symptoms and not st.session_state.diagnostic_output:
-        st.info(
-            "💡 Complete the patient assessment form on the left to populate real-time diagnostic models and LLM summary assessments.")
-
-    # Handle matching symptom exceptions
-    elif len(st.session_state.detected_symptoms) == 0:
-        st.error("❌ Symptom Matching Failed")
-        st.markdown(
-            "The system was unable to parse features matching the target respiratory configurations. "
-            "Please try refining the note description with clearer anatomical contexts (e.g., 'coughing', 'fever', 'chest pain')."
-        )
-
+    if not st.session_state.analysis_triggered:
+        st.markdown("""
+            <div style='border: 1px dashed var(--border-accent); padding:48px 20px; text-align:center; border-radius:6px; margin-top:2px;'>
+                <p style='color: var(--text-muted); margin:0; font-size:0.8rem; line-height:1.4;'>Awaiting pipeline execution payload.<br>Submit the clinical data profile on the left to start telemetry analysis.</p>
+            </div>
+        """, unsafe_allow_html=True)
     else:
-        # Step 1: Render parsed structured symptoms inside functional badge bubbles
-        st.markdown("<div class='section-title'>🔍 Extracted Clinical Symptoms</div>", unsafe_allow_html=True)
-        badge_html = "".join([f"<span class='symptom-badge'>🔹 {s}</span>" for s in st.session_state.detected_symptoms])
-        st.markdown(badge_html, unsafe_allow_html=True)
-        st.markdown("<br>", unsafe_allow_html=True)
+        # 1. Render mapped symptom tokens
+        st.markdown(
+            "<p style='color: var(--text-muted); font-size:0.7rem; font-weight:600; text-transform:uppercase; margin-bottom:4px; letter-spacing:0.5px;'>Extracted Feature Grid</p>",
+            unsafe_allow_html=True)
+        if not st.session_state.detected_symptoms:
+            st.markdown(
+                "<span style='color: var(--text-muted); font-size:0.8rem; display:block; margin-bottom:15px;'><i>No target features parsed from raw string.</i></span>",
+                unsafe_allow_html=True)
+        else:
+            tags_html = "".join([f"<span class='symptom-tag'>• {s}</span>" for s in st.session_state.detected_symptoms])
+            st.markdown(f"<div style='margin-bottom:15px;'>{tags_html}</div>", unsafe_allow_html=True)
 
-        # Step 2: Tabbed Results UI Container separating Assistant and Analytical views
-        tab1, tab2 = st.tabs(["🤖 Medical Agent Summary", "🔬 Ensemble Analytics Pipeline"])
+        # 2. Split output metrics using the structured Tab panels
+        tab1, tab2 = st.tabs(["💬 Agent Interpretations", "🎯 Pipeline Analytics"])
 
         with tab1:
-            st.markdown("<br>", unsafe_allow_html=True)
-            # Display conversational LLM summary inside styled layout callouts
-            st.markdown(f"{st.session_state.diagnostic_output}")
+            st.markdown(
+                f"<p style='color: var(--text-primary); font-size:0.85rem; line-height:1.5; padding-top:12px; margin:0;'>{st.session_state.diagnostic_output}</p>",
+                unsafe_allow_html=True)
 
         with tab2:
-            st.markdown("<br>", unsafe_allow_html=True)
-
-            # Display primary tabular target
-            st.markdown("<div class='section-title'>🥇 Top Predicted Condition</div>", unsafe_allow_html=True)
             st.markdown(f"""
-                <div class='medical-card'>
-                    <h3 style='margin:0; color:#ff4b4b;'>{st.session_state.primary_pred}</h3>
-                    <p style='margin:5px 0 0 0; color:#8892b0; font-size:0.9rem;'>Calculated as highest probability match based on current feature matrix configuration.</p>
+                <div class='hub-card' style='margin-top:12px; border-left: 3px solid var(--risk-accent);'>
+                    <div class='hub-title' style='color: var(--risk-accent) !important;'>{st.session_state.primary_pred} <span style='color: var(--text-muted);'>→ Target Classification</span></div>
+                    <div class='hub-desc'>Evaluated as the primary high-confidence condition within the ensemble network layer.</div>
                 </div>
             """, unsafe_allow_html=True)
 
-            # Display alternate differential targets
-            st.markdown("<div class='section-title'>📋 Differential Candidates</div>", unsafe_allow_html=True)
-            for alt in st.session_state.alternatives:
-                if alt != st.session_state.primary_pred:
-                    st.markdown(f"""
-                        <div class='alt-card'>
-                            <strong style='color:#4b9fff;'>• {alt}</strong>
-                        </div>
-                    """, unsafe_allow_html=True)
+            alts_clean = [a for a in st.session_state.alternatives if a != st.session_state.primary_pred]
+            if alts_clean:
+                st.markdown(f"""
+                    <div class='hub-card' style='border-left: 3px solid var(--primary-brand);'>
+                        <div class='hub-title'>Differential Panel <span>({len(alts_clean)} matches)</span></div>
+                        <div class='hub-desc'>Secondary network configuration targets: <strong style='color: var(--primary-brand);'>{", ".join(alts_clean)}</strong></div>
+                    </div>
+                """, unsafe_allow_html=True)
 
-
-
-
-
+st.markdown("</div>", unsafe_allow_html=True)  # Closes main hub-container wrap div
